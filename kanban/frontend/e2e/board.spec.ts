@@ -30,7 +30,7 @@ test("adds and deletes a card", async ({ page }) => {
   await column.getByRole("button", { name: "Add" }).click();
 
   await expect(column.getByText("Ship the launch note")).toBeVisible();
-  await column.getByRole("button", { name: "Delete Ship the launch note" }).click();
+  await column.getByRole("button", { name: "Delete Ship the launch note", exact: true }).click();
   await expect(column.getByText("Ship the launch note")).toHaveCount(0);
 });
 

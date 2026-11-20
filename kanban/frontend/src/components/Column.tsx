@@ -17,7 +17,6 @@ export function ColumnView({
   highlighted,
   onRename,
   onAdd,
-  onDelete,
   dropRef,
   children,
 }: ColumnHandlers & { dropRef?: Ref<HTMLElement>; children: ReactNode }) {

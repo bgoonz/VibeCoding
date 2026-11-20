@@ -48,6 +48,7 @@ export function CardView({ card, onDelete }: { card: Card; onDelete: (cardId: st
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
+      aria-label={card.title}
     />
   );
 }
