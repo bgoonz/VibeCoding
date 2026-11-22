@@ -80,7 +80,7 @@ export default {
 
     if (!res.ok) {
       console.error("OpenRouter error", res.status, await res.text());
-      return json({ error: "The chat is unavailable right now." }, 502);
+      return json({ error: "The chat is unavailable right now.", upstream: res.status }, 502);
     }
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     const reply = data.choices?.[0]?.message?.content?.trim();
