@@ -1,39 +1,68 @@
 name: Deploy site
 
+# Only runs for changes to the portfolio site (or this workflow); other folders
+# in this repo never trigger a deploy.
 on:
   push:
     branches: [master]
-    paths: ["site/**", ".github/workflows/deploy-site.yml"]
+    paths:
+      - "site/**"
+      - ".github/workflows/deploy-site.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  worker:
+  # Worker: only redeploys when the Worker code or the profile data it embeds changed
+  # (or on a manual run). Third-party actions are pinned to commit SHAs.
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      worker: ${{ steps.diff.outputs.worker }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # Diff every commit in the push, not just the last one.
+          if [ "${{ github.event_name }}" != "push" ] ||              ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null ||              git diff --name-only "$BEFORE" HEAD | grep -qE '^(site/worker/|site/data/|\.github/workflows/deploy-site\.yml)'; then
+            echo "worker=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "worker=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  worker:
+    needs: changes
+    if: needs.changes.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: chat-worker
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: site/worker
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-      - name: Deploy chat Worker and set its secret
+          cache: npm
+          cache-dependency-path: site/worker/package-lock.json
+      - run: npm ci
+      - name: Type-check Worker
+        run: npm run typecheck
+      - name: Deploy chat Worker and sync its secret
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          npx --yes wrangler@4 deploy
-          printf '%s' "$OPENROUTER_API_KEY" | npx --yes wrangler@4 secret put OPENROUTER_API_KEY
+          npx wrangler deploy
+          printf '%s' "$OPENROUTER_API_KEY" | npx wrangler secret put OPENROUTER_API_KEY
 
   build:
     runs-on: ubuntu-latest
@@ -41,29 +70,45 @@ jobs:
       run:
         working-directory: site
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci
+      - name: Check chat URL is configured
+        env:
+          NEXT_PUBLIC_CHAT_URL: ${{ vars.CHAT_API_URL }}
+        run: |
+          if [ -z "$NEXT_PUBLIC_CHAT_URL" ]; then
+            echo "::error::Repository variable CHAT_API_URL is not set; the chat would be broken."
+            exit 1
+          fi
       - name: Build static site
         env:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
           NEXT_PUBLIC_CHAT_URL: ${{ vars.CHAT_API_URL }}
         run: npm run build
       - run: touch out/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           path: site/out
 
+  # Publishing the site depends only on the build, so a Cloudflare problem
+  # never blocks content updates.
   deploy:
-    needs: [worker, build]
+    needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

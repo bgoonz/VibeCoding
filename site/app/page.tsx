@@ -120,8 +120,8 @@ export default function Home() {
           <div className="contact">
             <a href={`mailto:${profile.email}`}>{profile.email}</a>
             <a href={profile.phoneHref}>{profile.phone}</a>
-            <a href={profile.links[1].href}>LinkedIn</a>
-            <a href={profile.links[2].href}>GitHub</a>
+            <a href={profile.linkedin}>LinkedIn</a>
+            <a href={profile.github}>GitHub</a>
           </div>
         </section>
       </main>

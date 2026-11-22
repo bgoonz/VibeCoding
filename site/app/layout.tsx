@@ -15,10 +15,27 @@ const serif = Fraunces({
   variable: "--font-serif",
 });
 
+const title = "Bryan Guner — Web Developer";
+const description =
+  "Portfolio of Bryan Guner, a frontend developer in Weehawken, New Jersey working with React and Next.js.";
+
 export const metadata: Metadata = {
-  title: "Bryan Guner — Web Developer",
-  description:
-    "Portfolio of Bryan Guner, a frontend developer in Weehawken, New Jersey working with React and Next.js.",
+  metadataBase: new URL("https://bgoonz.github.io/VibeCoding/"),
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    url: "./",
+    siteName: "Bryan Guner",
+    type: "profile",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -7,6 +7,8 @@ export const profile = {
   phoneHref: "tel:+15512545505",
   summary:
     "Frontend developer working in React and Next.js. I came to the web from an electrical engineering degree and now build product interfaces, internal tools, and the APIs behind them.",
+  linkedin: "https://www.linkedin.com/in/bryan-guner-046199128",
+  github: "https://github.com/bgoonz",
   links: [
     { label: "Email", href: "mailto:bryan.guner@gmail.com" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/bryan-guner-046199128" },

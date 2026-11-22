@@ -2,12 +2,26 @@ name = "bryan-guner-chat"
 main = "src/index.ts"
 compatibility_date = "2026-11-01"
 
+# Production (deployed by GitHub Actions). The API key is NOT stored here; it is a
+# Worker secret set from the OPENROUTER_API_KEY GitHub secret during deploy.
 [vars]
-ALLOWED_ORIGINS = "https://bgoonz.github.io,http://localhost:3000"
+ALLOWED_ORIGINS = "https://bgoonz.github.io"
 
-# Recommended: add a Rate Limiting rule for this worker in the Cloudflare dashboard.
-# The API key is NOT stored here. Set it as a secret:
-#   npx wrangler secret put OPENROUTER_API_KEY
+# Per-IP rate limit: 10 chat requests per 60 seconds.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
 
 [observability]
 enabled = true
+
+# Local development: `npx wrangler dev --env dev` (key goes in worker/.dev.vars)
+[env.dev]
+[env.dev.vars]
+ALLOWED_ORIGINS = "http://localhost:3000"
+
+[[env.dev.ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

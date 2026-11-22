@@ -1,0 +1,14 @@
+{
+  "name": "bryan-guner-chat",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev --env dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261122.2",
+    "typescript": "^5.9.0",
+    "wrangler": "4.166.0"
+  }
+}
