@@ -1,0 +1,10 @@
+name = "bryan-guner-chat"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://bgoonz.github.io,http://localhost:3000"
+
+# Recommended: add a Rate Limiting rule for this worker in the Cloudflare dashboard.
+# The API key is NOT stored here. Set it as a secret:
+#   npx wrangler secret put OPENROUTER_API_KEY

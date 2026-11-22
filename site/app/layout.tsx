@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
+import ChatWidget from "./ChatWidget";
 
 const sans = Source_Sans_3({
   subsets: ["latin"],
@@ -23,7 +24,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable}`}>
-      <body className={sans.className}>{children}</body>
+      <body className={sans.className}>
+        {children}
+        <ChatWidget />
+      </body>
     </html>
   );
 }
