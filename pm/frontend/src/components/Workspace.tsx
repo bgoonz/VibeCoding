@@ -36,6 +36,7 @@ const errorText = (error: unknown) =>
 export function Workspace() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [snapshot, setSnapshot] = useState<Snapshot>();
+  const [pendingBoard, setPendingBoard] = useState<BoardData>();
   const [busy, setBusy] = useState(false);
   const [chatBusy, setChatBusy] = useState(false);
   const [errorInChat, setErrorInChat] = useState(false);
@@ -124,15 +125,22 @@ export function Workspace() {
   if (phase === "board" && snapshot) {
     return (
       <KanbanBoard
-        data={snapshot.board}
+        data={pendingBoard ?? snapshot.board}
         disabled={busy}
-        onUpdate={(update) =>
-          run(async () => {
-            setSnapshot(await api<Snapshot>("board", "PUT", {
-              board: update(snapshot.board), revision: snapshot.revision,
-            }));
-          })
-        }
+        onUpdate={async (update, options) => {
+          if (locked.current) return false;
+          const board = update(snapshot.board);
+          if (options?.optimistic) setPendingBoard(board);
+          try {
+            return await run(async () => {
+              setSnapshot(await api<Snapshot>("board", "PUT", {
+                board, revision: snapshot.revision,
+              }));
+            });
+          } finally {
+            if (options?.optimistic) setPendingBoard(undefined);
+          }
+        }}
         controls={
           <>
             <button className="workspace-secondary" disabled={busy} onClick={() => {

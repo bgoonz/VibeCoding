@@ -6,6 +6,8 @@ Set `OPENROUTER_API_KEY` in `.env` to enable chat. Set `KANBAN_PORT` to change t
 
 Set `SESSION_SECRET` in `.env` to keep sessions valid across container restarts.
 
+See the [project documentation](docs/README.md) for architecture, the API, database details, and troubleshooting.
+
 ## Checks
 
 - Backend from `backend/` with `uv run --locked pytest`.

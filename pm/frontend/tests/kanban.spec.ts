@@ -16,14 +16,13 @@ async function addCard(page: Page, title: string) {
   await expect(column.getByText(title)).toBeVisible();
 }
 
-async function dragCard(page: Page, card: Locator, destination: Locator, offsetY?: number) {
+async function moveDragPointer(page: Page, card: Locator, destination: Locator, offsetY?: number) {
   const source = await card.boundingBox();
   const target = await destination.boundingBox();
   if (!source || !target) throw new Error("Drag coordinates are unavailable.");
   await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
   await page.mouse.down();
   await page.mouse.move(target.x + target.width / 2, target.y + (offsetY ?? target.height / 2), { steps: 12 });
-  await page.mouse.up();
 }
 
 test("requires sign-in and clears the session on sign-out", async ({ page }) => {
@@ -53,16 +52,32 @@ test("persists manual card and column changes", async ({ page }) => {
   await expect(drag).toBeVisible();
   const backlog = page.getByTestId("column-col-backlog");
   const backlogCards = backlog.locator('[data-testid^="card-"]');
-  await dragCard(page, drag, backlogCards.first());
+  await moveDragPointer(page, drag, backlogCards.first());
+  await page.mouse.up();
   await expect(backlogCards.first()).toContainText(editedTitle);
+  await expect(backlog.getByLabel("Column title")).toBeEnabled();
   await page.reload();
   await expect(backlogCards.first()).toContainText(editedTitle);
 
   const review = page.getByTestId("column-col-review");
-  await dragCard(page, drag, review, 150);
-  await expect(review.getByText(editedTitle)).toBeVisible();
-
   const columnTitle = review.getByLabel("Column title");
+  const save = Promise.withResolvers<void>();
+  await page.route("**/api/board", async (route) => {
+    await save.promise;
+    await route.continue();
+  }, { times: 1 });
+  try {
+    await moveDragPointer(page, drag, review, 150);
+    await expect(backlogCards.first()).toHaveCSS("opacity", "0");
+    await page.mouse.up();
+    await expect(columnTitle).toBeDisabled();
+    await expect(review.getByText(editedTitle)).toBeVisible();
+    await expect(backlog.getByText(editedTitle)).toHaveCount(0);
+  } finally {
+    await page.mouse.up();
+    save.resolve();
+  }
+  await expect(columnTitle).toBeEnabled();
   const previousTitle = await columnTitle.inputValue();
   await columnTitle.fill("Ready for review");
   await columnTitle.press("Enter");

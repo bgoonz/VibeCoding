@@ -21,7 +21,7 @@ type BoardUpdate = (board: BoardData) => BoardData;
 
 type Props = {
   data?: BoardData;
-  onUpdate?: (update: BoardUpdate) => Promise<boolean>;
+  onUpdate?: (update: BoardUpdate, options?: { optimistic: boolean }) => Promise<boolean>;
   disabled?: boolean;
   controls?: ReactNode;
   sidebar?: ReactNode;
@@ -52,10 +52,15 @@ export const KanbanBoard = ({ data, onUpdate, disabled, controls, sidebar }: Pro
       return;
     }
 
-    setBoard((prev) => ({
+    const update: BoardUpdate = (prev) => ({
       ...prev,
       columns: moveCard(prev.columns, active.id as string, over.id as string),
-    }));
+    });
+    if (onUpdate) {
+      void onUpdate(update, { optimistic: true });
+    } else {
+      setDemo(update);
+    }
   };
 
   const handleRenameColumn = (columnId: string, title: string) => {
@@ -156,12 +161,8 @@ export const KanbanBoard = ({ data, onUpdate, disabled, controls, sidebar }: Pro
                 ))}
               </section>
             </fieldset>
-            <DragOverlay>
-              {activeCard && (
-                <div className="w-[260px]">
-                  <KanbanCardPreview card={activeCard} />
-                </div>
-              )}
+            <DragOverlay dropAnimation={null}>
+              {activeCard && <KanbanCardPreview card={activeCard} />}
             </DragOverlay>
           </DndContext>
           {sidebar}
