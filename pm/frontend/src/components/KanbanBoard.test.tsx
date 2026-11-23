@@ -16,7 +16,19 @@ describe("KanbanBoard", () => {
     const input = within(column).getByLabelText("Column title");
     await userEvent.clear(input);
     await userEvent.type(input, "New Name");
-    expect(input).toHaveValue("New Name");
+    await userEvent.tab();
+    expect(within(column).getByLabelText("Column title")).toHaveValue("New Name");
+  });
+
+  it("edits an existing card", async () => {
+    render(<KanbanBoard />);
+    const column = getFirstColumn();
+    await userEvent.click(within(column).getByRole("button", { name: "Edit Align roadmap themes" }));
+    const title = within(column).getByLabelText("Card title");
+    await userEvent.clear(title);
+    await userEvent.type(title, "Align release themes");
+    await userEvent.click(within(column).getByRole("button", { name: "Save" }));
+    expect(within(column).getByText("Align release themes")).toBeInTheDocument();
   });
 
   it("adds and removes a card", async () => {

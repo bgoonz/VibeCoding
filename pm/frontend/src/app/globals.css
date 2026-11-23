@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-display: "Space Grotesk Variable", sans-serif;
+  --font-body: "Manrope Variable", "Segoe UI", sans-serif;
   --accent-yellow: #ecad0a;
   --primary-blue: #209dd7;
   --secondary-purple: #753991;
@@ -31,4 +33,16 @@ body {
 
 .font-display {
   font-family: var(--font-display), "Segoe UI", sans-serif;
+}
+
+.workspace-input {
+  @apply block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-[var(--primary-blue)];
+}
+
+.workspace-primary {
+  @apply rounded-xl bg-[var(--secondary-purple)] px-4 py-2 font-semibold text-white disabled:opacity-50;
+}
+
+.workspace-secondary {
+  @apply rounded-xl border border-[var(--stroke)] bg-white px-4 py-2 text-sm font-semibold disabled:opacity-50;
 }

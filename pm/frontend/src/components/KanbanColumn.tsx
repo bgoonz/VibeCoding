@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { Card, Column } from "@/lib/kanban";
@@ -9,9 +10,28 @@ type KanbanColumnProps = {
   column: Column;
   cards: Card[];
   onRename: (columnId: string, title: string) => void;
-  onAddCard: (columnId: string, title: string, details: string) => void;
+  onAddCard: (columnId: string, title: string, details: string) => void | Promise<boolean>;
   onDeleteCard: (columnId: string, cardId: string) => void;
+  onEditCard: (cardId: string, title: string, details: string) => void | Promise<boolean>;
+  disabled?: boolean;
 };
+
+function ColumnTitle({ title, onRename }: { title: string; onRename: (title: string) => void }) {
+  const [draft, setDraft] = useState(title);
+  return (
+    <input
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={() => {
+        if (draft !== title) onRename(draft);
+        setDraft(title);
+      }}
+      onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+      className="mt-3 w-full bg-transparent font-display text-lg font-semibold text-[var(--navy-dark)]"
+      aria-label="Column title"
+    />
+  );
+}
 
 export const KanbanColumn = ({
   column,
@@ -19,8 +39,10 @@ export const KanbanColumn = ({
   onRename,
   onAddCard,
   onDeleteCard,
+  onEditCard,
+  disabled,
 }: KanbanColumnProps) => {
-  const { setNodeRef, isOver } = useDroppable({ id: column.id });
+  const { setNodeRef, isOver } = useDroppable({ id: column.id, disabled });
 
   return (
     <section
@@ -39,12 +61,7 @@ export const KanbanColumn = ({
               {cards.length} cards
             </span>
           </div>
-          <input
-            value={column.title}
-            onChange={(event) => onRename(column.id, event.target.value)}
-            className="mt-3 w-full bg-transparent font-display text-lg font-semibold text-[var(--navy-dark)] outline-none"
-            aria-label="Column title"
-          />
+          <ColumnTitle key={column.title} title={column.title} onRename={(title) => onRename(column.id, title)} />
         </div>
       </div>
       <div className="mt-4 flex flex-1 flex-col gap-3">
@@ -54,6 +71,8 @@ export const KanbanColumn = ({
               key={card.id}
               card={card}
               onDelete={(cardId) => onDeleteCard(column.id, cardId)}
+              onEdit={onEditCard}
+              disabled={disabled}
             />
           ))}
         </SortableContext>

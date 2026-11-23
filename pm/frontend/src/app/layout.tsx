@@ -1,16 +1,7 @@
 import type { Metadata } from "next";
-import { Manrope, Space_Grotesk } from "next/font/google";
+import "@fontsource-variable/manrope";
+import "@fontsource-variable/space-grotesk";
 import "./globals.css";
-
-const displayFont = Space_Grotesk({
-  variable: "--font-display",
-  subsets: ["latin"],
-});
-
-const bodyFont = Manrope({
-  variable: "--font-body",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Kanban Studio",
@@ -24,9 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${displayFont.variable} ${bodyFont.variable}`}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
