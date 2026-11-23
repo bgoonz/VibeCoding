@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, expect, it } from "vitest";
 import { KanbanBoard } from "@/components/KanbanBoard";
 
 const getFirstColumn = () => screen.getAllByTestId(/column-/i)[0];

@@ -1,7 +1,7 @@
 FROM node:24-slim AS frontend
 WORKDIR /frontend
 COPY frontend/package*.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build

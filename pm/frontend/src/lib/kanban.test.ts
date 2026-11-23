@@ -1,4 +1,5 @@
 import { moveCard, type Column } from "@/lib/kanban";
+import { describe, expect, it } from "vitest";
 
 describe("moveCard", () => {
   const baseColumns: Column[] = [

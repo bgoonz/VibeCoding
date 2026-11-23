@@ -4,6 +4,8 @@ Run `pwsh -File scripts/start.ps1` on Windows or `sh scripts/start.sh` on macOS 
 
 Set `OPENROUTER_API_KEY` in `.env` to enable chat. Set `KANBAN_PORT` to change the host port. Stop with the corresponding `stop` script. The Compose volume retains the board.
 
+Set `SESSION_SECRET` in `.env` to keep sessions valid across container restarts.
+
 ## Checks
 
 - Backend from `backend/` with `uv run --locked pytest`.

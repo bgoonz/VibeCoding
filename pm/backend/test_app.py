@@ -133,6 +133,7 @@ def test_chat_history_and_multi_card_update(client, monkeypatch):
 
 @pytest.mark.parametrize("reply,status", [
     ({"reply": "Answer", "create": [], "edit": [], "move": []}, 200),
+    ({"reply": "", "create": [], "edit": [], "move": []}, 502),
     ("malformed", 502),
     ({"reply": "Deleted", "delete": ["card-1"], "create": [], "edit": [], "move": []}, 502),
     ({"reply": "Moved", "create": [], "edit": [], "move": [{"card_id": "missing", "column_id": "col-done"}]}, 502),

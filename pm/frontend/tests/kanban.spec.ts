@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 async function login(page: Page, password = "password") {
   await page.goto("/");
@@ -14,6 +14,16 @@ async function addCard(page: Page, title: string) {
   await column.getByPlaceholder("Details").fill("Added via browser.");
   await column.getByRole("button", { name: /^add card$/i }).click();
   await expect(column.getByText(title)).toBeVisible();
+}
+
+async function dragCard(page: Page, card: Locator, destination: Locator, offsetY?: number) {
+  const source = await card.boundingBox();
+  const target = await destination.boundingBox();
+  if (!source || !target) throw new Error("Drag coordinates are unavailable.");
+  await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(target.x + target.width / 2, target.y + (offsetY ?? target.height / 2), { steps: 12 });
+  await page.mouse.up();
 }
 
 test("requires sign-in and clears the session on sign-out", async ({ page }) => {
@@ -41,14 +51,15 @@ test("persists manual card and column changes", async ({ page }) => {
   await page.getByRole("button", { name: "Save", exact: true }).click();
   const drag = page.getByLabel("Drag " + editedTitle);
   await expect(drag).toBeVisible();
+  const backlog = page.getByTestId("column-col-backlog");
+  const backlogCards = backlog.locator('[data-testid^="card-"]');
+  await dragCard(page, drag, backlogCards.first());
+  await expect(backlogCards.first()).toContainText(editedTitle);
+  await page.reload();
+  await expect(backlogCards.first()).toContainText(editedTitle);
+
   const review = page.getByTestId("column-col-review");
-  const source = await drag.boundingBox();
-  const target = await review.boundingBox();
-  if (!source || !target) throw new Error("Drag coordinates are unavailable.");
-  await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(target.x + target.width / 2, target.y + 150, { steps: 12 });
-  await page.mouse.up();
+  await dragCard(page, drag, review, 150);
   await expect(review.getByText(editedTitle)).toBeVisible();
 
   const columnTitle = review.getByLabel("Column title");
